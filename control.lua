@@ -220,13 +220,13 @@ local function encode_json(value)
   return "\"\""
 end
 
-local function snapshot_json_string()
-  return encode_json(ensure_snapshot())
+local function fresh_snapshot()
+  perform_scan()
+  return ensure_snapshot()
 end
 
-local function refresh_snapshot_json_string()
-  perform_scan()
-  return snapshot_json_string()
+local function fresh_snapshot_json_string()
+  return encode_json(fresh_snapshot())
 end
 
 local function refresh_interval()
@@ -249,17 +249,16 @@ local function register_remote()
 
   remote.add_interface(REMOTE_NAME, {
     get_snapshot = function()
-      return ensure_snapshot()
+      return fresh_snapshot()
     end,
     refresh_snapshot = function()
-      perform_scan()
-      return ensure_snapshot()
+      return fresh_snapshot()
     end,
     get_snapshot_json = function()
-      return snapshot_json_string()
+      return fresh_snapshot_json_string()
     end,
     refresh_snapshot_json = function()
-      return refresh_snapshot_json_string()
+      return fresh_snapshot_json_string()
     end,
     get_config = function()
       return config

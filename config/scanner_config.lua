@@ -19,7 +19,7 @@ return {
     {
       label = "electric_furnaces",
       entity_names = { "electric-furnace" },
-      properties = { "energy", "status", "temperature" },
+      properties = { "energy", "status", "temperature", "recipe" },
     },
     {
       label = "electric_mining_drills",
