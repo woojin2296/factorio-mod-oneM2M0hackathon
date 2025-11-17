@@ -1,0 +1,9 @@
+{
+  "name": "device-scanner",
+  "version": "0.1.0",
+  "title": "Device Scanner",
+  "author": "Codex",
+  "factorio_version": "2.0",
+  "dependencies": ["base >= 1.1"],
+  "description": "Scans configured entities on a schedule and exposes their status via remote interface for RCON consumers."
+}
