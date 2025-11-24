@@ -5,6 +5,9 @@
 - Exposes the snapshot and active configuration through the `device_scanner` remote interface for use in scripts or RCON.
 - Triggers a scan when the save initializes or when mod settings change, then continues on the configured interval.
 
+## Background
+- Used in the Hackster.io project "IoT-enabled factory operations system utilizing Mobius4" as part of the oneM2M/Mobius4 hackathon: https://www.hackster.io/pringles/iot-enabled-factory-operations-system-utilizing-mobius4-b7298e
+
 ## What gets scanned
 - Properties this mod understands: `energy`, `power_production`, `crafting_progress`, `status`, `recipe`, `fluidbox`, `steam_output`, `fuel`, `steam`, `resource` (plus `name` and `unit_number` are always included).
 - Unsupported property names in the config are ignored safely.
