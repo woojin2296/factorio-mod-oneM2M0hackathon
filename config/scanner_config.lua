@@ -1,5 +1,5 @@
 return {
-  update_interval_ticks = 300, -- 5 seconds
+  update_interval_ticks = 60,
   targets = {
     {
       label = "offshore_pumps",

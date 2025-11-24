@@ -1,37 +1,59 @@
 # Device Scanner Mod
 
-## 개요
-- `config/scanner_config.lua`에 정의된 엔티티를 주기적으로 스캔하여 `global.device_snapshot`에 저장합니다.
-- RCON에서 `remote.call("device_scanner", ...)`로 상태를 가져올 수 있습니다.
+## What it does
+- Scans configured entities on a fixed tick interval and caches the results in `global.device_snapshot`.
+- Exposes the snapshot and active configuration through the `device_scanner` remote interface for use in scripts or RCON.
+- Triggers a scan when the save initializes or when mod settings change, then continues on the configured interval.
 
-## 설정
+## What gets scanned
+- Properties this mod understands: `energy`, `power_production`, `crafting_progress`, `status`, `recipe`, `fluidbox`, `steam_output`, `fuel`, `steam`, `resource` (plus `name` and `unit_number` are always included).
+- Unsupported property names in the config are ignored safely.
+- Default targets from `config/scanner_config.lua`:
+  - `offshore_pumps`: `fluidbox`
+  - `steam_engines`: `energy`, `power_production`, `steam`
+  - `assemblers`: `crafting_progress`, `status`, `recipe`
+  - `electric_furnaces`: `energy`, `status`, `recipe`
+  - `electric_mining_drills`: `energy`, `status`, `resource`
+  - `boilers`: `fluidbox`, `energy`, `steam_output`, `fuel` 
+
+## Applying the mod
+1. Copy or zip this folder as `device-scanner_0.1.0` into your Factorio `mods` directory (works with Factorio 2.0; depends on base >= 1.1).
+2. Launch Factorio and enable the mod in the Mods menu (servers: place it in `mods` and restart).
+3. Optionally edit `config/scanner_config.lua` before starting the save to change the scan interval or targets.
+
+## Configuration
 ```lua
 return {
-  update_interval_ticks = 300,
+  update_interval_ticks = 60, -- ticks between automatic scans
   targets = {
     {
       label = "offshore_pumps",
       entity_names = { "offshore-pump" },
-      properties = { "position", "surface", "fluidbox" },
+      properties = { "fluidbox" },
     },
-    -- ...
+    -- add more targets here
   }
 }
 ```
-- `update_interval_ticks`: 몇 틱마다 자동 스캔할지 설정합니다.
-- `targets`: 스캔 대상 그룹.
-  - `label`: RCON에서 구분할 이름.
-  - `entity_names`: 감시할 Factorio 엔티티 이름 목록.
-  - `properties`: 추출할 속성 목록(`position`, `surface`, `health`, `energy`, `fluidbox`, `crafting_progress`, `status`, `power_production`, `electric_network_id`).
+- `update_interval_ticks`: How many ticks to wait between automatic scans; set to 0 or nil to disable periodic scanning.
+- `targets`: Each entry is scanned for every force on every surface.
+  - `label`: Name used in snapshots and RCON responses.
+  - `entity_names`: Factorio entity prototypes to look for.
+  - `properties`: List of property keys from the supported list above.
 
-## Remote 인터페이스
-- `device_scanner.get_snapshot()` – 마지막 스냅샷 반환.
-- `device_scanner.refresh_snapshot()` – 즉시 스캔 후 결과 반환.
-- `device_scanner.get_snapshot_json()` – 마지막 스냅샷을 JSON 문자열로 반환.
-- `device_scanner.refresh_snapshot_json()` – 즉시 스캔 후 JSON 문자열 반환.
-- `device_scanner.get_config()` – 현재 설정(config 파일) 반환.
+## Remote interface
+Interface name: `device_scanner`
+- `get_snapshot()` – Return the latest cached snapshot (runs a scan first if none exists).
+- `refresh_snapshot()` – Run a scan immediately and return the snapshot.
+- `get_snapshot_json()` – Return the cached snapshot as a JSON string.
+- `refresh_snapshot_json()` – Run a scan and return a JSON string.
+- `get_config()` – Return the active configuration table.
 
-스냅샷 구조 예시는 다음과 같습니다.
+Examples (console or RCON):
+- `/sc rcon.print(remote.call("device_scanner", "refresh_snapshot_json"))`
+- `/sc game.write_file("device_snapshot.json", remote.call("device_scanner", "get_snapshot_json"))`
+
+## Snapshot shape
 ```lua
 {
   tick = 123456,
@@ -40,10 +62,11 @@ return {
       label = "offshore_pumps",
       count = 2,
       entities = {
-        { name = "offshore-pump", unit_number = 1, position = {x=0,y=0}, fluidbox = {...} },
+        { name = "offshore-pump", unit_number = 1, fluidbox = { ... } },
         -- ...
       }
     }
   }
 }
 ```
+`entities` entries include only the properties requested for that target, plus `name` and `unit_number`.
